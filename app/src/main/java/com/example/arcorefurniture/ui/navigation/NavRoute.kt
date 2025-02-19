@@ -12,4 +12,4 @@ data class ARScreenNav(val model: List<String>)
 object CategoryScreenNav
 
 @Serializable
-object FurnitureScreenNav
+data class FurnitureScreenNav(val categotyItem: String)

@@ -12,14 +12,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import com.example.arcorefurniture.ui.navigation.CategoryScreenNav
+import com.example.arcorefurniture.ui.navigation.FurnitureScreenNav
 
 @Composable
 fun CategoryScreen(navController: NavController) {
     Column(modifier = Modifier.fillMaxSize().background(Color.Gray),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Button(onClick = {navController.navigate(CategoryScreenNav)}) {
-            Text(text = "Get it")
+        Button(onClick = {navController.navigate(FurnitureScreenNav("SOFA"))}) {
+            Text(text = "SOFA")
+        }
+        Button(onClick = {navController.navigate(FurnitureScreenNav("CHAIR"))}) {
+            Text(text = "CHAIR")
         }
     }
 }

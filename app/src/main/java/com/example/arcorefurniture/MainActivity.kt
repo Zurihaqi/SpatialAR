@@ -46,7 +46,8 @@ class MainActivity : ComponentActivity() {
                             CategoryScreen(navController)
                         }
                         composable<FurnitureScreenNav>{
-                            FurnitureScreen(navController)
+                            val category = it.toRoute<FurnitureScreenNav>().categotyItem
+                            FurnitureScreen(navController,category)
                         }
 
 
