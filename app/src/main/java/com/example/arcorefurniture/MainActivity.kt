@@ -6,55 +6,63 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.example.arcorefurniture.ui.navigation.ARScreenNav
-import com.example.arcorefurniture.ui.navigation.CategoryScreenNav
 import com.example.arcorefurniture.ui.navigation.FurnitureScreenNav
 import com.example.arcorefurniture.ui.navigation.MainScreenNav
-import com.example.arcorefurniture.ui.screens.ARScreen
-import com.example.arcorefurniture.ui.screens.CategoryScreen
-import com.example.arcorefurniture.ui.screens.FurnitureScreen
-import com.example.arcorefurniture.ui.screens.MainScreen
+import com.example.arcorefurniture.ui.screens.*
 import com.example.arcorefurniture.ui.theme.ARCoreFurnitureTheme
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ARCoreFurnitureTheme {
+                var showSheet by remember { mutableStateOf(false) }
+                val navController = rememberNavController()
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = MainScreenNav,
+                        startDestination = "splash_screen",
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        composable("splash_screen") {
+                            SplashScreen(navController)
+                        }
                         composable<MainScreenNav> {
-                            MainScreen(navController)
+                            MainScreen(
+                                navController = navController,
+                                onShowCategorySheet = { showSheet = true }
+                            )
                         }
                         composable<ARScreenNav> {
-                            val alphabet = it.toRoute<ARScreenNav>().model
                             ARScreen(navController)
                         }
-                        composable<CategoryScreenNav>{
-                            CategoryScreen(navController)
+                        composable<FurnitureScreenNav> { backStackEntry ->
+                            val category = backStackEntry.arguments?.getString("categoryItem")
+                            if (category != null) {
+                                FurnitureScreen(navController, category)
+                            }
                         }
-                        composable<FurnitureScreenNav>{
-                            val category = it.toRoute<FurnitureScreenNav>().categotyItem
-                            FurnitureScreen(navController,category)
-                        }
+                    }
 
-
+                    if (showSheet) {
+                        CategoryScreen(
+                            parentNavController = navController,
+                            onDismiss = { showSheet = false }
+                        )
                     }
                 }
             }
         }
     }
 }
-
