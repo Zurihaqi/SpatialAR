@@ -13,16 +13,6 @@ import io.github.sceneview.node.ModelNode
 
 object Utils {
 
-//    val alphabets = mapOf(
-//        "A" to "couch.obj",
-//        "B" to "apple.glb"
-//
-//    )
-//    fun getModelForAlphabet(alphabet: String): String {
-//        val modelName = alphabets[alphabet] ?: error("Model not found")
-//        return "models/$modelName"
-//    }
-
     @SuppressLint("NewApi")
     fun createAnchorNode(
         engine: Engine,
