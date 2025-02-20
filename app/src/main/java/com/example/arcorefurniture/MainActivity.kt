@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable<ARScreenNav> {
                             val alphabet = it.toRoute<ARScreenNav>().model
-                            ARScreen(navController,alphabet)
+                            ARScreen(navController)
                         }
                         composable<CategoryScreenNav>{
                             CategoryScreen(navController)

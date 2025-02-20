@@ -1,21 +1,23 @@
 package com.example.arcorefurniture.ui.screens
 
 import android.view.MotionEvent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.arcorefurniture.ui.utils.Utils
-import com.google.ar.core.Config
-import com.google.ar.core.Frame
-import com.google.ar.core.TrackingFailureReason
+import com.google.ar.core.*
+import dev.romainguy.kotlin.math.Float3
+import dev.romainguy.kotlin.math.distance
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.arcore.createAnchorOrNull
 import io.github.sceneview.ar.arcore.isValid
 import io.github.sceneview.ar.rememberARCameraNode
-import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.Node
 import io.github.sceneview.rememberCollisionSystem
 import io.github.sceneview.rememberEngine
@@ -26,7 +28,7 @@ import io.github.sceneview.rememberOnGestureListener
 import io.github.sceneview.rememberView
 
 @Composable
-fun ARScreen(navController: NavController,model : List<String>) {
+fun ARScreen(navController: NavController) {
     val engine = rememberEngine()
     val modelLoader = rememberModelLoader(engine = engine)
     val materialLoader = rememberMaterialLoader(engine = engine)
@@ -34,65 +36,99 @@ fun ARScreen(navController: NavController,model : List<String>) {
     val childNodes = rememberNodes()
     val view = rememberView(engine = engine)
     val collisionSystem = rememberCollisionSystem(view = view)
-    val planeRenderer = remember {
-        mutableStateOf(true)
-    }
-    val modelInstance = remember {
-        mutableListOf<ModelInstance>()
-    }
-    val trackingFailureReason = remember {
-        mutableStateOf<TrackingFailureReason?>(null)
-    }
-    val frame = remember {
-        mutableStateOf<Frame?>(null)
-    }
 
-    ARScene(
-        modifier = Modifier.fillMaxSize(),
-        childNodes = childNodes,
-        engine = engine,
-        view = view,
-        modelLoader = modelLoader,
-        collisionSystem = collisionSystem,
-        planeRenderer = planeRenderer.value,
-        cameraNode = cameraNode,
-        materialLoader = materialLoader,
-        onTrackingFailureChanged = {
-            trackingFailureReason.value = it
-        },
-        onSessionUpdated = { _, updatedFrame ->
-            frame.value = updatedFrame
-        },
-        sessionConfiguration = { session, config ->
-            config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                true -> Config.DepthMode.AUTOMATIC
-                else -> Config.DepthMode.DISABLED
-            }
-            config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
-        },
-        onGestureListener = rememberOnGestureListener(
-            onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
-                if (node == null) {
-                    val hitTestResult = frame.value?.hitTest(e.x, e.y)
-                    hitTestResult?.firstOrNull {
-                        it.isValid(
-                            depthPoint = false,
-                            point = false
-                        )
-                    }?.createAnchorOrNull()?.let {
-                        val nodeModel = Utils.createAnchorNode(
-                            engine = engine,
-                            modelLoader = modelLoader,
-                            materialLoader = materialLoader,
-                            modelInstance = modelInstance,
-                            anchor = it,
-                            model = Utils.getModelForAlphabet(model[0])
-                        )
-                        childNodes += nodeModel
+    val planeRenderer = remember { mutableStateOf(true) }
+    val frame = remember { mutableStateOf<Frame?>(null) }
+
+    var startAnchor by remember { mutableStateOf<Anchor?>(null) }
+    var endAnchor by remember { mutableStateOf<Anchor?>(null) }
+    var distance by remember { mutableStateOf<Float?>(null) }
+
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.weight(1f)) {
+            ARScene(
+                modifier = Modifier.fillMaxSize(),
+                childNodes = childNodes,
+                engine = engine,
+                view = view,
+                modelLoader = modelLoader,
+                collisionSystem = collisionSystem,
+                planeRenderer = planeRenderer.value,
+                cameraNode = cameraNode,
+                materialLoader = materialLoader,
+                onSessionUpdated = { _, updatedFrame -> frame.value = updatedFrame },
+                sessionConfiguration = { session, config ->
+                    config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
+                        true -> Config.DepthMode.AUTOMATIC
+                        else -> Config.DepthMode.DISABLED
                     }
+                    config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
+                },
+                onGestureListener = rememberOnGestureListener(
+                    onSingleTapConfirmed = { e: MotionEvent, node: Node? ->
+                        val hitTestResult = frame.value?.hitTest(e.x, e.y)
+                        val hitPose = hitTestResult?.firstOrNull {
+                            it.isValid(depthPoint = false, point = false)
+                        }?.hitPose
+
+                        if (hitPose != null) {
+                            val newAnchor = hitTestResult.firstOrNull()?.createAnchor()
+                            if (startAnchor == null) {
+                                startAnchor = newAnchor
+                            } else if (endAnchor == null) {
+                                endAnchor = newAnchor
+
+                                // Hitung jarak antara dua titik
+                                if (startAnchor != null && endAnchor != null) {
+                                    val startPos = Float3(
+                                        startAnchor!!.pose.tx(),
+                                        startAnchor!!.pose.ty(),
+                                        startAnchor!!.pose.tz()
+                                    )
+                                    val endPos = Float3(
+                                        endAnchor!!.pose.tx(),
+                                        endAnchor!!.pose.ty(),
+                                        endAnchor!!.pose.tz()
+                                    )
+
+                                    distance = distance(startPos, endPos)
+                                }
+                            } else {
+                                // Reset jika sudah dua titik
+                                startAnchor = newAnchor
+                                endAnchor = null
+                                distance = null
+                            }
+                        }
+                    }
+                )
+            )
+        }
+
+        // Menampilkan hasil pengukuran jarak
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = distance?.let { "Distance: %.2f meters".format(it) } ?: "Tap two points to measure",
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        startAnchor = null
+                        endAnchor = null
+                        distance = null
+                    },
+                    modifier = Modifier.background(Color.Transparent)
+                ) {
+                    Text("Reset")
                 }
             }
-        )
-
-    )
+        }
+    }
 }
