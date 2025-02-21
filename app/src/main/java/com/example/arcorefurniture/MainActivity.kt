@@ -45,7 +45,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable<ARScreenNav> {
-                            ARScreen(navController)
+                            val models = mutableListOf<String>("","")
+                            ARScreen(navController,models)
                         }
                         composable<FurnitureScreenNav> { backStackEntry ->
                             val category = backStackEntry.arguments?.getString("categoryItem")

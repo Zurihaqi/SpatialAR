@@ -20,7 +20,8 @@ object Utils {
         materialLoader: MaterialLoader,
         modelInstance: MutableList<ModelInstance>,
         anchor: Anchor,
-        model: String
+        model: String,
+        scale: Float
     ): AnchorNode {
         val anchorNode = AnchorNode(engine = engine, anchor = anchor)
         val modelNode = ModelNode(
@@ -29,7 +30,7 @@ object Utils {
                     this += modelLoader.createInstancedModel(model, 10)
                 }
             }.removeLast(),
-            scaleToUnits = 2f
+            scaleToUnits = scale
         ).apply {
             isEditable = true
         }
