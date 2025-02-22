@@ -9,12 +9,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -23,14 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -44,7 +37,24 @@ fun FurnitureScreen(
     categoryItem: String
 ) {
     var searchText by remember { mutableStateOf("") }
-    val furnitureItems = List(10) { listOf("White Chair", "Black Chair", "Brown Chair")[it % 3] }
+
+    // Organized furniture models by category
+    val furnitureModelsByCategory = mapOf(
+        "SOFAS" to mapOf(
+            "Brown Sofa" to "models/sofas/sofa_03_1k.gltf/sofa_03_1k.gltf",
+            "Black Sofa" to "models/sofas/Sofa_01_1k.gltf/Sofa_01_1k.gltf"
+        ),
+        "TABLES" to mapOf(
+            "Coffee Table" to "models/tables/coffee_table_round_01_1k.gltf/coffee_table_round_01_1k.gltf",
+        ),
+        "CABINETS" to mapOf(
+            "Chinese Cabinet" to "models/tables/chinese_cabinet_1k.gltf/chinese_cabinet_1k.gltf",
+            "Modern Wooden Cabinet" to "models/tables/modern_wooden_cabinet_1k.gltf/modern_wooden_cabinet_1k.gltf"
+        )
+    )
+
+    // Get the furniture items for the selected category
+    val furnitureItems = furnitureModelsByCategory[categoryItem]?.keys?.toList() ?: emptyList()
 
     Box(
         modifier = Modifier
@@ -53,8 +63,7 @@ fun FurnitureScreen(
     ) {
         // Main Content Card
         Surface(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             color = Color.White,
         ) {
             Column(
@@ -105,6 +114,7 @@ fun FurnitureScreen(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
 
+                // Filter furniture items based on search text
                 val filteredFurniture = furnitureItems.filter { it.contains(searchText, ignoreCase = true) }
 
                 // Furniture Grid
@@ -117,12 +127,12 @@ fun FurnitureScreen(
                         FurnitureCard(
                             name = item,
                             onAddClick = {
-                                navController.navigate(ARScreenNav(listOf("MASUK ARCORE", "")))
+                                val modelPath = furnitureModelsByCategory[categoryItem]?.get(item) ?: ""
+                                navController.navigate(ARScreenNav(modelPath))
                             }
                         )
                     }
                 }
-
             }
         }
 
@@ -166,7 +176,6 @@ fun FurnitureCard(
                 onClick = onAddClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-//                    .padding(10.dp)
                     .scale(0.6f)
                     .border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(100.dp))
             ) {

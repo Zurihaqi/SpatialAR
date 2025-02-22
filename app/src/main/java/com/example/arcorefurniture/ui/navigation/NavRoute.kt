@@ -6,10 +6,7 @@ import kotlinx.serialization.Serializable
 object MainScreenNav
 
 @Serializable
-data class ARScreenNav(val model: List<String>)
-
-@Serializable
-object CategoryScreenNav
+data class ARScreenNav(val selectedModel: String)
 
 @Serializable
 data class FurnitureScreenNav(val categoryItem: String)

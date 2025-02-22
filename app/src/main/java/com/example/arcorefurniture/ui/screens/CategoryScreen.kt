@@ -101,7 +101,7 @@ fun CategoryScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            val categories = listOf("SOFAS", "CHAIRS", "TABLES", "BEDS", "SHELVES")
+            val categories = listOf("SOFAS", "CHAIRS", "TABLES", "BEDS", "CABINETS")
             val filteredCategories = categories.filter { it.contains(searchText, ignoreCase = true) }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {

@@ -20,7 +20,6 @@ import com.example.arcorefurniture.ui.screens.*
 import com.example.arcorefurniture.ui.theme.ARCoreFurnitureTheme
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -41,13 +40,17 @@ class MainActivity : ComponentActivity() {
                         composable<MainScreenNav> {
                             MainScreen(
                                 navController = navController,
+                            )
+                        }
+                        composable<ARScreenNav> { backStackEntry ->
+                            val model = backStackEntry.arguments?.getString("selectedModel") ?: ""
+                            ARScreen(
+                                navController = navController,
+                                selectedModel = model,
                                 onShowCategorySheet = { showSheet = true }
                             )
                         }
-                        composable<ARScreenNav> {
-                            val models = mutableListOf<String>("","")
-                            ARScreen(navController,models)
-                        }
+
                         composable<FurnitureScreenNav> { backStackEntry ->
                             val category = backStackEntry.arguments?.getString("categoryItem")
                             if (category != null) {
