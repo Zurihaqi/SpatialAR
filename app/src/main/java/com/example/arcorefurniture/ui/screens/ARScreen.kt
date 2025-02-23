@@ -99,49 +99,47 @@ fun ARScreen(
                         val newAnchor = hitTestResult.firstOrNull()?.createAnchorOrNull()
 
                         if (isMeasuring) {
+                            // Clear previous models to enforce pin model usage
+                            modelInstance.clear()
+
+                            // Always use the pin model when measuring
+                            val pinModel = "models/props/map_pin_location_pin.glb"
+
                             if (startAnchor == null) {
                                 startAnchor = newAnchor
-                                newAnchor?.let {
-                                    val nodeModel = Utils.createAnchorNode(
-                                        engine = engine,
-                                        modelLoader = modelLoader,
-                                        materialLoader = materialLoader,
-                                        modelInstance = modelInstance,
-                                        anchor = it,
-                                        scale = 0.2f,
-                                        model = "models/props/map_pin_location_pin.glb"
-                                    )
-                                    childNodes += nodeModel
-                                }
                             } else if (endAnchor == null) {
                                 endAnchor = newAnchor
-                                newAnchor?.let {
-                                    val nodeModel = Utils.createAnchorNode(
-                                        engine = engine,
-                                        modelLoader = modelLoader,
-                                        materialLoader = materialLoader,
-                                        modelInstance = modelInstance,
-                                        anchor = it,
-                                        scale = 0.2f,
-                                        model = "models/props/map_pin_location_pin.glb"
-                                    )
-                                    childNodes += nodeModel
+                            }
 
-                                    // Calculate distance when both points are placed
-                                    val startPos = Float3(
-                                        startAnchor!!.pose.tx(),
-                                        startAnchor!!.pose.ty(),
-                                        startAnchor!!.pose.tz()
-                                    )
-                                    val endPos = Float3(
-                                        endAnchor!!.pose.tx(),
-                                        endAnchor!!.pose.ty(),
-                                        endAnchor!!.pose.tz()
-                                    )
-                                    distance = distance(startPos, endPos)
-                                }
+                            newAnchor?.let {
+                                val nodeModel = Utils.createAnchorNode(
+                                    engine = engine,
+                                    modelLoader = modelLoader,
+                                    materialLoader = materialLoader,
+                                    modelInstance = modelInstance,
+                                    anchor = it,
+                                    scale = 0.2f,
+                                    model = pinModel
+                                )
+                                childNodes += nodeModel
+                            }
+
+                            // Calculate distance when both points are placed
+                            if (startAnchor != null && endAnchor != null) {
+                                val startPos = Float3(
+                                    startAnchor!!.pose.tx(),
+                                    startAnchor!!.pose.ty(),
+                                    startAnchor!!.pose.tz()
+                                )
+                                val endPos = Float3(
+                                    endAnchor!!.pose.tx(),
+                                    endAnchor!!.pose.ty(),
+                                    endAnchor!!.pose.tz()
+                                )
+                                distance = distance(startPos, endPos)
                             }
                         } else {
+                            // If switching out of measuring mode, clear previous instances
                             modelInstance.clear()
 
                             newAnchor?.let {
@@ -152,7 +150,7 @@ fun ARScreen(
                                     modelInstance = modelInstance,
                                     anchor = it,
                                     scale = 1f,
-                                    model = selectedModel
+                                    model = selectedModel // Use selected model when not measuring
                                 )
                                 childNodes += nodeModel
                             }
@@ -192,9 +190,21 @@ fun ARScreen(
             )
         }
 
-        if (!isMeasuring && selectedModel.isEmpty()) {
+        if(isMeasuring) {
             Text(
-                text = "Please select a model before placing it.",
+                text = "Measuring mode",
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 170.dp)
+                    .padding(8.dp)
+            )
+        }
+
+        if (selectedModel.isEmpty()) {
+            Text(
+                text = if (!isMeasuring) "Please select a model by pressing the plus button."
+                else "Click on 2 points to measure the area",
                 color = Color.White,
                 modifier = Modifier.align(Alignment.Center)
             )
